@@ -1,31 +1,27 @@
 import flet as ft
-import heapq
-import random
 from classes.board import Board
-from classes.heuristics import Heuristics
-
-
-MRes_value=50
-Genn_value=700
-Popp_value=110
 
 
 
 ###########################################################################--Algorithms--###########################################################################
+#########################################################--Functional--########################################################
 
-###############################################--Backtracking Search Algorithm--###############################################
+def backtrack_functional(board, col=0):
+    pass
 
-def backtrack(board, col=0):
+###############################################################################################################################
+
+########################################################--Imperative--########################################################
+
+def backtrack_imperative(board, col=0):
     if col >= board.N:
         return True
 
-    start = board.start[col]
-    for offset in range(board.N):
-        i = (start + offset) % board.N
+    for i in range(board.N):
         if board.is_safe(i, col):
             board.place_queen(i, col)
 
-            if backtrack(board, col + 1):
+            if backtrack_imperative(board, col + 1):
                 return True
 
             board.remove_queen(i, col)
@@ -33,221 +29,14 @@ def backtrack(board, col=0):
     return False
 ###############################################################################################################################
 
-
-################################################--Best-First Search Algorithm--################################################
-
-
-
-
-
-
-def best_first(board):
-    n = board.N
-    start = board.start.copy()
-    heuristic = Heuristics.current
-    pq = [(heuristic(start, n), start)]
-    visited = set()
-
-    while pq:
-        h, state = heapq.heappop(pq)
-
-        if h == 0:
-            for col in range(n):
-                board.place_queen(state[col], col)
-            return True
-        visited.add(tuple(state))
-        for i in range(n):
-            for j in range(n):
-                if j != state[i]:
-                    new_state = state.copy()
-                    new_state[i] = j
-                    if tuple(new_state) not in visited:
-                        heapq.heappush(pq, (heuristic(new_state, n), new_state))
-    return False
-
-    
-
-###############################################################################################################################
-
-
-
-
-
-###############################################--Hill-Climbing Search Algorithm--###############################################
-
-def hill_climbing(board, maxrestarts=50):
-    n = board.N
-    heuristic = Heuristics.current
-    print(f"\nMax Restarts={MRes_value}\n")
-    def get_neighbors(state):
-        neighbors = []
-        for i in range(n):
-            for j in range(n):
-                if j != state[i]:
-                    new_state = state.copy()
-                    new_state[i] = j
-                    neighbors.append(new_state)
-        return neighbors
-
-    for _ in range(maxrestarts):
-        if _ == 0:
-            current = board.start.copy()
-        else:
-            current = [random.randint(0, n - 1) for _ in range(n)]
-
-        current_h = heuristic(current, n)
-        while True:
-            neighbors = get_neighbors(current)
-            next_state = min(neighbors, key=lambda s: heuristic(s, n))
-            next_h = heuristic(next_state, n)
-            if next_h >= current_h:
-                break
-            current, current_h = next_state, next_h
-        if current_h == 0:
-            for col in range(n):
-                board.place_queen(current[col], col)
-            return True
-    return False
-
-###############################################################################################################################
-
-
-
-
-
-
-
-##################################################--Culture Search Algorithm--##################################################
-
-def cultural(board, population_size=110, generations=700):
-    heuristic = Heuristics.current
-    print(f"\nPopulation Size={Popp_value}\n")
-    print(f"\nGenerations={Genn_value}\n")
-    n = board.N
-
-
-    # def fitness(state):
-    #     return 1 / (1 + heuristic(state, n))
-
-    population =([board.start.copy()] + [[random.randint(0, n - 1) for _ in range(n)]for _ in range(population_size - 1)] )
-
-    belief = board.start.copy()
-
-    for gen in range(generations):
-        population.sort(key=lambda s: heuristic(s, n))
-        best = population[0]
-        if heuristic(best, n) == 0:
-            for col in range(n):
-                board.place_queen(best[col], col)
-            return True
-
-        top_half = population[:population_size // 2]
-        for i in range(n):
-            belief[i] = random.choice([s[i] for s in top_half])
-
-        new_pop = []
-        for _ in range(population_size):
-            parent = random.choice(top_half)
-            child = parent.copy()
-            idx = random.randint(0, n - 1)
-            child[idx] = belief[idx] if random.random() < 0.5 else random.randint(0, n - 1)
-            new_pop.append(child)
-        population = new_pop
-    return False
-
 ############################################################--GUI--#############################################################
 #To run write python main.py in terminal but please make sure you installed flet by putting "pip install flet" in terminal/cmd
 def main(page: ft.Page):
     page.title = "N-Queens Problem"
     page.adaptive=True
-    
-    def handle_dismissal(e):
-        print(f"Drawer dismissed!")
-
-    def handle_change(e):
-        print(f"Selected Index changed: {e.control.selected_index}")
-        page.close(drawer)    
-    
-    def set_MRes(e):
-        print(MRes.value)
-        if MRes.value!='':
-            global MRes_value
-            MRes_value=int(MRes.value)
-
-
-    def set_Popp(e):
-        print(Popp.value)
-        if Popp.value!='':
-            global Popp_value
-            Popp_value=int(Popp.value)
-       
-    def set_Genn(e):
-        print(Genn.value)
-        if Genn.value!='':
-            global Genn_value
-            Genn_value=int(Genn.value)
-        
-    
-    MRes=ft.TextField(hint_text="Max Restarts: Default 50", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
-    MRB=ft.ElevatedButton(text="Set", on_click=set_MRes, bgcolor=ft.Colors.GREEN, color=ft.Colors.WHITE,)
-    
-    Popp=ft.TextField(hint_text="Population Size: Default 110", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
-    PoppB=ft.ElevatedButton(text="Set", on_click=set_Popp, bgcolor=ft.Colors.GREEN, color=ft.Colors.WHITE,)
-    
-    Genn=ft.TextField(hint_text="Generations: Default 700", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
-    GennB=ft.ElevatedButton(text="Set", on_click=set_Genn, bgcolor=ft.Colors.GREEN, color=ft.Colors.WHITE,)
-    
-    drawer = ft.NavigationDrawer(
-        on_dismiss=handle_dismissal,
-        on_change=handle_change,
-        tile_padding=ft.padding.all(10),
-        controls=[
-            ft.Container(height=30),
-            ft.Text("Select Heuristic", size=20, text_align=ft.TextAlign.CENTER, color=ft.Colors.GREEN),
-            ft.Container(                 
-                content=ft.RadioGroup(
-                            content=ft.Row(
-                            [
-                            ft.Radio(value="1", label="1",adaptive=True,expand=True),
-                            ft.Radio(value="2", label="2",adaptive=True,expand=True),
-                            ft.Radio(value="3", label="3",adaptive=True,expand=True),
-
-                            ], alignment=ft.MainAxisAlignment.CENTER, expand=True
-                            ), on_change=lambda e: Heuristics.set_heuristic(1 if e.control.value=="1" else 2 if e.control.value=="2" else 3), value="1"
-                            ), 
-                        padding=ft.padding.all(10)
-                    ),
-            ft.Divider(thickness=2),
-            ft.Text("Hill-Climbing", size=20, text_align=ft.TextAlign.CENTER, color=ft.Colors.GREEN),
-            ft.Container( 
-                content=ft.Column(
-                [MRes, ft.Container(height=10),
-                 MRB]
-                ) , padding=ft.padding.all(10), alignment=ft.alignment.center),
-            ft.Divider(thickness=2),
-            ft.Text("Culture", size=20, text_align=ft.TextAlign.CENTER, color=ft.Colors.GREEN),
-            ft.Container( 
-                content=ft.Column(
-                [Popp, ft.Container(height=10),
-                 PoppB,ft.Container(height=10),Genn, ft.Container(height=10),GennB]
-                ) , padding=ft.padding.all(10), alignment=ft.alignment.center),
-
-            
-
-            
-           
-            
-        ],
-    )
-    
-    
-    
-    
-    
     page.appbar = ft.AppBar(
         title = ft.Text(value="N-Queens", color="green", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-        center_title=True, actions=[ft.IconButton(ft.Icons.SETTINGS_ROUNDED,on_click=lambda e: page.open(drawer)),],
-        )
+        center_title=True,)
     # page.window.width = 600
     # page.window.height = 700
     page.auto_scroll = True
@@ -347,7 +136,7 @@ def main(page: ft.Page):
             page.update()
             return
         if color_dropdown.value is None:
-            output_text.value = "Please select a search algorithm."
+            output_text.value = "Please select a paradigm."
             output_container.content = output_text
             output_time.value = ""
             page.update()
@@ -372,13 +161,12 @@ def main(page: ft.Page):
     def all_Clicked(e):
         validation()
         page.all_results=[]
-        start=[random.randint(0, int(Ntiles.value) - 1) for _ in range(int(Ntiles.value))]
-        solve_all(int(Ntiles.value), start)
+        solve_all(int(Ntiles.value))
         page.update()
 
     def show_comp():
         columns=[
-            ft.DataColumn(ft.Text("Algorithm")),
+            ft.DataColumn(ft.Text("Paradigm")),
             ft.DataColumn(ft.Text("Time Taken (seconds)")),
         ]
         rows=[]
@@ -395,7 +183,7 @@ def main(page: ft.Page):
 
         content=ft.Column(
             [
-                ft.Text("Comparison of Algorithms", weight=ft.FontWeight.BOLD, size=18, text_align=ft.TextAlign.CENTER),
+                ft.Text("Comparison of Paradigms", weight=ft.FontWeight.BOLD, size=18, text_align=ft.TextAlign.CENTER),
                 table,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
@@ -415,27 +203,26 @@ def main(page: ft.Page):
         page.open(compall)
 
 
-    def solve_all(n, start):
+    def solve_all(n):
         page.all_results=[]
         
-        for al in range(1,5):
+        for al in range(1,3):
             x=""
             match al:
-                case 1: x="Backtracking Search"
-                case 2: x="Best-First Search"
-                case 3: x="Hill-Climbing Search"
-                case 4: x="Cultural Algorithm"
+                case 1: x="Pure Functional Paradigm"
+                case 2: x="Imperative Paradigm"
+
                 
-            result, timing=solve(int(n), al, start)
+            result, timing=solve(int(n), al)
             page.all_results.append((x,result,timing))
 
-        open_new(int(n), 1, start)
+        open_new(int(n), 1)
      
 
-    def open_new(n, algo, start):
+    def open_new(n, algo):
         
         
-        if algo> 4:
+        if algo> 2:
             show_comp()
             return
         
@@ -477,7 +264,7 @@ def main(page: ft.Page):
 
         def next(e):
             page.close(new_page)
-            open_new(n, algo+1, start)
+            open_new(n, algo+1)
                     
 
         new_page.actions=[ft.ElevatedButton("Next", on_click=next, bgcolor=ft.Colors.GREEN, color=ft.Colors.WHITE)]
@@ -492,12 +279,11 @@ def main(page: ft.Page):
     submit_btn = ft.ElevatedButton(text="Solve", on_click=button_clicked, bgcolor=ft.Colors.GREEN, color=ft.Colors.WHITE)
     color_dropdown = ft.Dropdown(
         text_align=ft.TextAlign.CENTER,
-        hint_text="Select Search Algorithm",
+        hint_text="Select Paradigm",
         options=[
-            ft.dropdown.Option(1,"Backtracking Search"),
-            ft.dropdown.Option(2,"Best-First Search"),
-            ft.dropdown.Option(3,"Hill-Climbing Search"),
-            ft.dropdown.Option(4,"Cultural Algorithm"),
+            ft.dropdown.Option(1,"Pure Functional Paradigm"),
+            ft.dropdown.Option(2,"Imperative Paradigm"),
+
         ],
     )
 
@@ -535,17 +321,14 @@ def main(page: ft.Page):
 
 ###########################################################--Main--############################################################
 
-def solve(N,C,start= -1):
-    board = Board(N, start)
+def solve(N,C):
+    board = Board(N)
     match C:
         case 1:
-            backtrack(board)
+            # backtrack_functional(board)
+            return("Pure Functional Paradigm Yet to be implemented.....",0)
         case 2:
-            best_first(board)
-        case 3:
-            hill_climbing(board,MRes_value)
-        case 4:
-            cultural(board,Popp_value,Genn_value)
+            backtrack_imperative(board)
         case _:
             return("No Such Search Algorithm"),0
     # return print_board(board)

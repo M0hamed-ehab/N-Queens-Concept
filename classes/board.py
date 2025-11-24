@@ -3,16 +3,11 @@ import time
 
 ########################################################--Board Class--########################################################
 class Board:
-    def __init__(self, N, start= -1):
+    def __init__(self, N):
         self.N = N
         self.board = [[0] * N for _ in range(N)]
         self.timing=time.time()
-        if start == -1:
-            self.start = [random.randint(0, N - 1) for _ in range(N)]
-        else:
-            self.start = start
-    
-        print("Initial State:", self.start)
+
 
     def is_safe(self, row, col):
         for i in range(col):
