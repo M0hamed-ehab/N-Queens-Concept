@@ -1,13 +1,56 @@
 import flet as ft
 from classes.board import Board
+import time
 
 
 
 ###########################################################################--Algorithms--###########################################################################
 #########################################################--Functional--########################################################
 
+    
+def is_safe_functional(board, row, col):
+    n = len(board)
+    # Check row on left
+    for i in range(col):
+        if board[row][i] == 1:
+            return False
+    # Check upper diagonal
+    i, j = row, col
+    while i >= 0 and j >= 0:
+        if board[i][j] == 1:
+            return False
+        i -= 1
+        j -= 1
+    # Check lower diagonal
+    i, j = row, col
+    while i < n and j >= 0:
+        if board[i][j] == 1:
+            return False
+        i += 1
+        j -= 1
+    return True
+
+
 def backtrack_functional(board, col=0):
-    pass
+    """
+    Pure functional-style backtracking.
+    `board` is a plain 2D list; this function returns a NEW board, not modifying input.
+    """
+    n = len(board)
+    if col >= n:
+        return board, True
+
+    for row in range(n):
+        if is_safe_functional(board, row, col):
+            new_board = [r[:] for r in board]
+            new_board[row][col] = 1
+            result, found = backtrack_functional(new_board, col + 1)
+            if found:
+                return result, True
+
+    return board, False
+    
+    
 
 ###############################################################################################################################
 
@@ -322,11 +365,18 @@ def main(page: ft.Page):
 ###########################################################--Main--############################################################
 
 def solve(N,C):
+    start_time = time.time()
+
     board = Board(N)
     match C:
         case 1:
-            # backtrack_functional(board)
-            return("Pure Functional Paradigm Yet to be implemented.....",0)
+            empty_board = [[0] * N for _ in range(N)]
+            result, found = backtrack_functional(empty_board)
+            elapsed = time.time() - start_time
+            if found:
+                return result, elapsed
+            else:
+                return "No Solution Found", elapsed
         case 2:
             backtrack_imperative(board)
         case _:
