@@ -7,50 +7,85 @@ import time
 ###########################################################################--Algorithms--###########################################################################
 #########################################################--Functional--########################################################
 
-    
-def is_safe_functional(board, row, col):
-    n = len(board)
-    # Check row on left
-    for i in range(col):
-        if board[row][i] == 1:
-            return False
-    # Check upper diagonal
-    i, j = row, col
-    while i >= 0 and j >= 0:
-        if board[i][j] == 1:
-            return False
-        i -= 1
-        j -= 1
-    # Check lower diagonal
-    i, j = row, col
-    while i < n and j >= 0:
-        if board[i][j] == 1:
-            return False
-        i += 1
-        j -= 1
-    return True
+def is_safe_row(board, row, col, i=0):
+    if i == col:
+        return True
+    if board[row][i] == 1:
+        return False
+    return is_safe_row(board, row, col, i + 1)
 
+
+def is_safe_upper(board, row, col):
+    def check(i, j):
+        if i < 0 or j < 0:
+            return True
+        if board[i][j] == 1:
+            return False
+        return check(i - 1, j - 1)
+    return check(row, col)
+
+
+def is_safe_lower(board, row, col):
+    n = len(board)
+
+    def check(i, j):
+        if i >= n or j < 0:
+            return True
+        if board[i][j] == 1:
+            return False
+        return check(i + 1, j - 1)
+    return check(row, col)
+
+
+def is_safe_functional(board, row, col):
+    return (
+        is_safe_row(board, row, col) and
+        is_safe_upper(board, row, col) and
+        is_safe_lower(board, row, col)
+    )
+
+def copy_board(board, i=0):
+    if i == len(board):
+        return []
+    return [board[i][:]] + copy_board(board, i + 1)
+
+def try_rows(board, col, row=0):
+    n = len(board)
+    if row == n:
+        return None, False
+
+    if is_safe_functional(board, row, col):
+        new_board = copy_board(board)
+        new_board[row][col] = 1
+        result, found = backtrack_functional(new_board, col + 1)
+        if found:
+            return result, True
+
+    return try_rows(board, col, row + 1)
 
 def backtrack_functional(board, col=0):
-    """
-    Pure functional-style backtracking.
-    `board` is a plain 2D list; this function returns a NEW board, not modifying input.
-    """
     n = len(board)
     if col >= n:
         return board, True
 
-    for row in range(n):
-        if is_safe_functional(board, row, col):
-            new_board = [r[:] for r in board]
-            new_board[row][col] = 1
-            result, found = backtrack_functional(new_board, col + 1)
-            if found:
-                return result, True
+    return try_rows(board, col)
 
-    return board, False
-    
-    
+########################################################--Imperative--#########################################################
+
+def backtrack_imperative(board, col=0):
+    if col >= board.N:
+        return True
+
+    for i in range(board.N):
+        if board.is_safe(i, col):
+            board.place_queen(i, col)
+
+            if backtrack_imperative(board, col + 1):
+                return True
+
+            board.remove_queen(i, col)
+
+    return False
 
 ###############################################################################################################################
 
@@ -364,13 +399,28 @@ def main(page: ft.Page):
 
 ###########################################################--Main--############################################################
 
+#create board & row fun
+def create_row(n, acc=None):
+    if acc is None:
+        acc = []
+    if len(acc) == n:
+        return acc
+    return create_row(n, acc + [0])
+
+def create_board(n, acc=None):
+    if acc is None:
+        acc = []
+    if len(acc) == n:
+        return acc
+    return create_board(n, acc + [create_row(n)])
+
 def solve(N,C):
     start_time = time.time()
 
     board = Board(N)
     match C:
         case 1:
-            empty_board = [[0] * N for _ in range(N)]
+            empty_board = create_board(N)
             result, found = backtrack_functional(empty_board)
             elapsed = time.time() - start_time
             if found:
