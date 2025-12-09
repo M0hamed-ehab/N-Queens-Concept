@@ -1,111 +1,8 @@
 import flet as ft
 from classes.board import Board
 import time
-
-
-
-###########################################################################--Algorithms--###########################################################################
-#########################################################--Functional--########################################################
-
-def is_safe_row(board, row, col, i=0):
-    if i == col:
-        return True
-    if board[row][i] == 1:
-        return False
-    return is_safe_row(board, row, col, i + 1)
-
-
-def is_safe_upper(board, row, col):
-    def check(i, j):
-        if i < 0 or j < 0:
-            return True
-        if board[i][j] == 1:
-            return False
-        return check(i - 1, j - 1)
-    return check(row, col)
-
-
-def is_safe_lower(board, row, col):
-    n = len(board)
-
-    def check(i, j):
-        if i >= n or j < 0:
-            return True
-        if board[i][j] == 1:
-            return False
-        return check(i + 1, j - 1)
-    return check(row, col)
-
-
-def is_safe_functional(board, row, col):
-    return (
-        is_safe_row(board, row, col) and
-        is_safe_upper(board, row, col) and
-        is_safe_lower(board, row, col)
-    )
-
-def copy_board(board, i=0):
-    if i == len(board):
-        return []
-    return [board[i][:]] + copy_board(board, i + 1)
-
-def try_rows(board, col, row=0):
-    n = len(board)
-    if row == n:
-        return None, False
-
-    if is_safe_functional(board, row, col):
-        new_board = copy_board(board)
-        new_board[row][col] = 1
-        result, found = backtrack_functional(new_board, col + 1)
-        if found:
-            return result, True
-
-    return try_rows(board, col, row + 1)
-
-def backtrack_functional(board, col=0):
-    n = len(board)
-    if col >= n:
-        return board, True
-
-    return try_rows(board, col)
-
-########################################################--Imperative--#########################################################
-
-def backtrack_imperative(board, col=0):
-    if col >= board.N:
-        return True
-
-    for i in range(board.N):
-        if board.is_safe(i, col):
-            board.place_queen(i, col)
-
-            if backtrack_imperative(board, col + 1):
-                return True
-
-            board.remove_queen(i, col)
-
-    return False
-
-###############################################################################################################################
-
-########################################################--Imperative--########################################################
-
-def backtrack_imperative(board, col=0):
-    if col >= board.N:
-        return True
-
-    for i in range(board.N):
-        if board.is_safe(i, col):
-            board.place_queen(i, col)
-
-            if backtrack_imperative(board, col + 1):
-                return True
-
-            board.remove_queen(i, col)
-
-    return False
-###############################################################################################################################
+import functional
+import imperative
 
 ############################################################--GUI--#############################################################
 #To run write python main.py in terminal but please make sure you installed flet by putting "pip install flet" in terminal/cmd
@@ -402,17 +299,17 @@ def main(page: ft.Page):
 #create board & row fun
 def create_row(n, acc=None):
     if acc is None:
-        acc = []
+        acc = ()
     if len(acc) == n:
         return acc
-    return create_row(n, acc + [0])
+    return create_row(n, acc + (0,))
 
 def create_board(n, acc=None):
     if acc is None:
-        acc = []
+        acc = ()
     if len(acc) == n:
         return acc
-    return create_board(n, acc + [create_row(n)])
+    return create_board(n, acc + (create_row(n),))
 
 def solve(N,C):
     start_time = time.time()
@@ -421,14 +318,15 @@ def solve(N,C):
     match C:
         case 1:
             empty_board = create_board(N)
-            result, found = backtrack_functional(empty_board)
+            result, found = functional.backtrack_functional(empty_board)
             elapsed = time.time() - start_time
+            result_list = [list(i) for i in result]
             if found:
-                return result, elapsed
+                return result_list, elapsed
             else:
                 return "No Solution Found", elapsed
         case 2:
-            backtrack_imperative(board)
+            imperative.backtrack_imperative(board)
         case _:
             return("No Such Search Algorithm"),0
     # return print_board(board)
