@@ -1,7 +1,7 @@
 #########################################################--Functional--########################################################
 
 
-
+# Concept: Recursion + Immutable data (tuple)
 def copy_row(board,ri,ci=0):
     if ci == len(board[ri]):
         return ()
@@ -13,6 +13,18 @@ def copy_rest(row, i=0):
     return (row[i],) + copy_rest(row, i+1)
 
 
+# Concept: Higher Order Function
+def make_direction_checker(board, step_i, step_j, boundary_condition):
+    def check(i, j):
+        if boundary_condition(i, j):
+            return True
+        if board[i][j] == 1:
+            return False
+        return check(i + step_i, j + step_j)
+    return check
+
+
+# Concept: Recursion
 def is_safe_row(board, row, col, i=0):
     if i == col:
         return True
@@ -21,26 +33,22 @@ def is_safe_row(board, row, col, i=0):
     return is_safe_row(board, row, col, i + 1)
 
 
+# Concept: Recursion
 def is_safe_upper(board, row, col):
-    def check(i, j):
-        if i < 0 or j < 0:
-            return True
-        if board[i][j]== 1:
-            return False
-        return check(i - 1, j - 1)
-    return check(row, col)
+    # using the Higher Order Function
+    boundary = lambda i, j: i < 0 or j < 0
+    checker = make_direction_checker(board, -1, -1, boundary)
+
+    return checker(row, col)
 
 
 def is_safe_lower(board, row, col):
     n = len(board)
+    # using the Higher Order Function
+    boundary = lambda i, j: i >= n or j < 0
+    checker = make_direction_checker(board, +1, -1, boundary)
 
-    def check(i, j):
-        if i >= n or j < 0:
-            return True
-        if board[i][j] == 1:
-            return False
-        return check(i + 1, j - 1)
-    return check(row, col)
+    return checker(row, col)
 
 
 def is_safe_functional(board, row, col):
@@ -50,6 +58,7 @@ def is_safe_functional(board, row, col):
         is_safe_lower(board, row, col)
     )
 
+# Concept: recursion + tuple concatenation
 def copy_board(board, i=0):
     if i == len(board):
         return ()
@@ -71,6 +80,7 @@ def try_rows(board, col, row=0):
     return try_rows(board, col, row + 1)
 
 
+# Concept: recursion + Immutable update
 def set_cell(board, row, col, value):
     def replace_row(list,i,new):
         if i==0:
@@ -84,6 +94,7 @@ def set_cell(board, row, col, value):
             return (newrow,)+copy_rest(row,1)
         return (row[0],)+replace(copy_rest(row,1),i-1)
     return replace(board,row)
+
 
 def backtrack_functional(board, col=0):
     n = len(board)
