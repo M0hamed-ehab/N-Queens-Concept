@@ -53,11 +53,11 @@ def main(page: ft.Page):
         table = ft.DataTable(
             columns=columns,
             rows=rows,
-            border=ft.border.all(3, ft.Colors.WHITE),
+            border=ft.border.all(3, ft.Colors.INVERSE_SURFACE),
             border_radius=10,
             heading_row_height=0,
-            vertical_lines=ft.border.BorderSide(3, ft.Colors.WHITE),
-            horizontal_lines=ft.border.BorderSide(3, ft.Colors.WHITE),
+            vertical_lines=ft.border.BorderSide(3, ft.Colors.INVERSE_SURFACE),
+            horizontal_lines=ft.border.BorderSide(3, ft.Colors.INVERSE_SURFACE),
             expand=True
         )
         table_container = ft.Container(
@@ -90,8 +90,8 @@ def main(page: ft.Page):
                     cells.append(ft.DataCell(ft.Text(str(" "))))
             rows.append(ft.DataRow(cells=cells))
 
-        table = ft.DataTable(columns=columns, rows=rows, border=ft.border.all(3, ft.Colors.WHITE), border_radius=10, heading_row_height=0,
-            vertical_lines=ft.border.BorderSide(3, ft.Colors.WHITE), horizontal_lines=ft.border.BorderSide(3, ft.Colors.WHITE),)
+        table = ft.DataTable(columns=columns, rows=rows, border=ft.border.all(3, ft.Colors.INVERSE_SURFACE), border_radius=10, heading_row_height=0,
+            vertical_lines=ft.border.BorderSide(3, ft.Colors.INVERSE_SURFACE), horizontal_lines=ft.border.BorderSide(3, ft.Colors.INVERSE_SURFACE),)
         
         table_container = ft.Container(
             content=ft.Row(
@@ -154,7 +154,7 @@ def main(page: ft.Page):
                     ]
                 )
             )
-        table=ft.DataTable(columns=columns, rows=rows, border=ft.border.all(1, ft.Colors.WHITE), border_radius=10)
+        table=ft.DataTable(columns=columns, rows=rows, border=ft.border.all(1, ft.Colors.INVERSE_SURFACE), border_radius=10)
 
         content=ft.Column(
             [
